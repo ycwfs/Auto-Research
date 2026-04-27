@@ -1,0 +1,17 @@
+[Unit]
+Description=Daily arXiv Paper Tracking Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=jkcrystal
+WorkingDirectory=/home/jkcrystal/LLM/daily-arxiv-matrix-alg
+Environment="PATH=/home/jkcrystal/anaconda3/envs/daily-arxiv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/jkcrystal/anaconda3/envs/daily-arxiv/bin/python scheduler.py
+Restart=always
+RestartSec=60
+StandardOutput=append:/home/jkcrystal/LLM/daily-arxiv-matrix-alg/logs/scheduler.log
+StandardError=append:/home/jkcrystal/LLM/daily-arxiv-matrix-alg/logs/scheduler.error.log
+
+[Install]
+WantedBy=multi-user.target

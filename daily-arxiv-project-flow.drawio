@@ -1,0 +1,216 @@
+<mxfile host="app.diagrams.net" modified="2026-04-27T22:27:00.000Z" agent="GitHub Copilot CLI" version="26.0.9" type="device">
+  <diagram id="daily-arxiv-project-flow" name="daily-arxiv-flow">
+    <mxGraphModel dx="1800" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="2600" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="10" value="Configuration &amp; Entry Points" style="swimlane;startSize=30;horizontal=0;rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1720" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="ArXiv Filters&#xa;categories / keywords&#xa;days_back / max_results" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="20" y="50" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Backend Switch&#xa;pipeline.summary_backend&#xa;pipeline.analysis_backend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="220" y="50" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Agent Settings&#xa;agent.copilot_command&#xa;model / reasoning&#xa;MinerU + Zotero MCP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="440" y="50" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Legacy LLM Settings&#xa;llm.provider&#xa;OpenAI / Gemini / Claude&#xa;DeepSeek / vLLM + .env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="680" y="50" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Scheduler&#xa;09:00 main&#xa;16:00 Zotero upload&#xa;Thu 20:00 weekly idea&#xa;Asia/Shanghai" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="940" y="50" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="Manual Entrypoints&#xa;python main.py&#xa;python zotero_upload.py&#xa;python weekly_idea.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="1210" y="50" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="Web / UI&#xa;src/web/app.py&#xa;reads latest JSON&#xa;shows papers / reports / wordcloud" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8dc;strokeColor=#d6b656;" vertex="1" parent="10">
+          <mxGeometry x="1480" y="50" width="210" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="20" value="Daily Main Pipeline" style="swimlane;startSize=30;horizontal=0;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="1720" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="Daily Trigger&#xa;manual or 09:00 scheduler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="20" y="60" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="Load .env + config&#xa;create run_id&#xa;acquire pipeline lock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="220" y="60" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="Fetch arXiv papers&#xa;historical dedup&#xa;today cumulative merge" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="430" y="60" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="New unseen&#xa;papers?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="20">
+          <mxGeometry x="650" y="50" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="25" value="Reuse / skip path&#xa;refresh latest snapshot&#xa;pipeline_state=no_new/reused" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="20">
+          <mxGeometry x="840" y="60" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="26" value="Save papers&#xa;papers_YYYY-MM-DD.json&#xa;papers/latest.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="840" y="180" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="27" value="summary_backend" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="20">
+          <mxGeometry x="1080" y="170" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="28" value="agent summary&#xa;Copilot + MinerU&#xa;PDF -&gt; Markdown&#xa;bilingual notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="20">
+          <mxGeometry x="1260" y="80" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="29" value="llm summary&#xa;legacy API client&#xa;title + abstract&#xa;bilingual structured summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="20">
+          <mxGeometry x="1260" y="250" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="30" value="Save summaries&#xa;summaries/latest.json&#xa;report_DATE.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="1490" y="170" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="31" value="Local analytics&#xa;TF-IDF / LDA&#xa;wordcloud / stats" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="1490" y="320" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="32" value="analysis_backend" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="20">
+          <mxGeometry x="1080" y="430" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="33" value="agent analysis&#xa;Copilot narrative&#xa;daily trend report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="20">
+          <mxGeometry x="1260" y="390" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="34" value="llm analysis&#xa;legacy API client&#xa;narrative trend report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="20">
+          <mxGeometry x="1260" y="520" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="35" value="Save analysis&#xa;analysis/latest.json&#xa;report_DATE.md&#xa;pipeline_state complete/partial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf3ff;strokeColor=#6c8ebf;" vertex="1" parent="20">
+          <mxGeometry x="1490" y="470" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="40" value="Daily Zotero Sync" style="swimlane;startSize=30;horizontal=0;rounded=1;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="980" width="1720" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="41" value="Zotero Trigger&#xa;manual or 16:00 scheduler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="20" y="60" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="42" value="Check pipeline_state&#xa;uploadable + run_id&#xa;wait for artifacts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="250" y="60" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="43" value="Stage daily inputs&#xa;papers/latest&#xa;summaries/latest&#xa;reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="500" y="60" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="44" value="Copilot + Zotero MCP&#xa;attach_mode=import&#xa;skip duplicates&#xa;route by collections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="740" y="50" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="45" value="Insert bilingual notes&#xa;zotero_note_en&#xa;zotero_note_zh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="1020" y="60" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="46" value="Add report notes&#xa;collection:&#xa;daily analysis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="1300" y="60" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="47" value="Logs / workspace&#xa;prompt snapshot&#xa;run log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;" vertex="1" parent="40">
+          <mxGeometry x="1520" y="60" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="60" value="Weekly Synthesis &amp; Idea" style="swimlane;startSize=30;horizontal=0;rounded=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1270" width="1720" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="61" value="Weekly Trigger&#xa;manual or Thu 20:00" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="20" y="60" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="62" value="Collect this week's&#xa;papers + summaries&#xa;from local data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="260" y="60" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="63" value="Inspect broader&#xa;Zotero repository&#xa;with Zotero MCP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="560" y="60" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="64" value="Copilot synthesis&#xa;weekly trends + gaps&#xa;idea framing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="860" y="60" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="65" value="Introduction-ready idea&#xa;Opening Hook&#xa;Background&#xa;Approach&#xa;Contributions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="1150" y="50" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="66" value="Save data/ideas&#xa;latest.json / latest.md&#xa;per-week artifacts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="1460" y="50" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="67" value="Save note to&#xa;Zotero collection:&#xa;idea" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdeaea;strokeColor=#b85450;" vertex="1" parent="60">
+          <mxGeometry x="1460" y="170" width="180" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="80" value="Persisted Outputs" style="swimlane;startSize=30;horizontal=0;rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1630" width="1720" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="81" value="data/papers&#xa;history + latest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="20" y="60" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="82" value="data/fulltext&#xa;MinerU Markdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="270" y="60" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="83" value="data/summaries&#xa;bilingual JSON&#xa;report_DATE.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="520" y="50" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="84" value="data/analysis&#xa;latest.json&#xa;report_DATE.md&#xa;wordcloud.png" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="770" y="40" width="190" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="85" value="data/runtime&#xa;pipeline_state.json&#xa;pipeline.lock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="1040" y="50" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="86" value="data/ideas&#xa;weekly idea&#xa;JSON / Markdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="1290" y="50" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="87" value="Zotero Library&#xa;topic collections&#xa;daily analysis&#xa;idea" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3ecf7;strokeColor=#9673a6;" vertex="1" parent="80">
+          <mxGeometry x="1530" y="40" width="150" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="100" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="21" target="22" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="101" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="22" target="23" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="102" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="23" target="24" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="103" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="24" target="25" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="104" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="24" target="26" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="105" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="26" target="27" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="106" value="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="27" target="28" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="107" value="llm" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#666666;" edge="1" source="27" target="29" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="108" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="28" target="30" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="109" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="29" target="30" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="110" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="30" target="31" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="111" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="31" target="32" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="112" value="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="32" target="33" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="113" value="llm" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#666666;" edge="1" source="32" target="34" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="114" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="33" target="35" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="115" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;" edge="1" source="34" target="35" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="116" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="41" target="42" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="117" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="42" target="43" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="118" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="43" target="44" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="119" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="44" target="45" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="120" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="45" target="46" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="121" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#82b366;" edge="1" source="46" target="47" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="122" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="61" target="62" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="123" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="62" target="63" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="124" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="63" target="64" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="125" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="64" target="65" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="126" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="65" target="66" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="127" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" source="65" target="67" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="128" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="26" target="81" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="129" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="28" target="82" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="130" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="30" target="83" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="131" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="35" target="84" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="132" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="25" target="85" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="133" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="35" target="85" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="134" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="66" target="86" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="135" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="46" target="87" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="136" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#9673a6;" edge="1" source="67" target="87" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="137" value="config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="11" target="23" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="138" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="12" target="27" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="139" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="12" target="32" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="140" value="agent path" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="13" target="28" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="141" value="agent path" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="13" target="44" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="142" value="llm path" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="14" target="29" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="143" value="llm path" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="14" target="34" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="144" value="schedule" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="15" target="21" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="145" value="schedule" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="15" target="41" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="146" value="schedule" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="15" target="61" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="147" value="manual" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="16" target="21" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="148" value="manual" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="16" target="41" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="149" value="manual" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="16" target="61" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="150" value="reads latest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="17" target="81" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="151" value="reads latest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="17" target="83" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="152" value="reads latest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6b656;" edge="1" source="17" target="84" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

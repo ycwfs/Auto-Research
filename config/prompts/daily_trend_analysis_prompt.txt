@@ -1,0 +1,39 @@
+Objective: Generate a daily research trend analysis from the prepared paper summaries and local statistics.
+
+Current date: {current_date}
+Run ID: {run_id}
+
+Input:
+- Analysis input JSON: {analysis_input_json}
+
+Output:
+- Analysis JSON: {output_json}
+
+Instructions:
+1. Read the entire input JSON first.
+2. Base the analysis on the provided paper summaries, structured full-text notes, keywords, topics, and statistics.
+3. Write exactly one JSON file to `{output_json}`.
+4. Use Chinese Markdown strings for each narrative field.
+5. The analysis should be specific, evidence-grounded, and action-oriented rather than generic.
+
+Output JSON schema:
+```json
+{{
+  "hotspots": "Markdown section on current research hotspots",
+  "trends": "Markdown section on technical trends and evolution",
+  "future_directions": "Markdown section on likely future directions",
+  "research_ideas": "Markdown section with 5-8 actionable research ideas",
+  "full_analysis": "A complete Markdown analysis that can stand alone"
+}}
+```
+
+Quality requirements:
+- `hotspots`: identify 3-5 concrete hotspots from the papers.
+- `trends`: explain method patterns, emerging techniques, and movement in the field.
+- `future_directions`: predict near-term directions grounded in the current set of papers.
+- `research_ideas`: provide feasible ideas with innovation point, value, and possible path.
+- `full_analysis`: integrate the above into one coherent Markdown report.
+
+Before finishing:
+- Verify the output JSON is valid.
+- Verify all five keys are present and non-empty.

@@ -1,0 +1,17 @@
+[Unit]
+Description=Daily arXiv Paper Tracking Service
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/path/to/daily-arxiv
+Environment="PATH=/path/to/conda/envs/daily-arxiv/bin"
+ExecStart=/path/to/conda/envs/daily-arxiv/bin/python scheduler.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/var/log/daily-arxiv/scheduler.log
+StandardError=append:/var/log/daily-arxiv/scheduler.error.log
+
+[Install]
+WantedBy=multi-user.target

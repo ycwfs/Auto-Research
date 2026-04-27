@@ -1,0 +1,24 @@
+Objective: Upload daily arXiv papers to my Zotero collections, incorporating bilingual full-text-based notes and submitting reports via Zotero MCP (with attach_mode set to 'import').
+
+Current date: {current_date}
+
+Use these exact inputs:
+- Papers metadata JSON: {papers_json}
+- Paper summaries JSON: {summaries_json}
+- Daily analysis report: {analysis_report}
+- Daily summaries report: {summaries_report}
+
+Instructions:
+1. Examine the paper metadata and the structured bilingual summaries in the JSON files above. Upload papers that are not already present in Zotero, and organize them into Zotero collections according to each paper's keywords, abstract, and structured summary. You may create additional collections when that improves categorization precision, for example by topic, methodology, or application domain.
+2. For each uploaded or matched paper, append BOTH notes from the summary JSON to the corresponding Zotero item:
+   - `zotero_note_en`
+   - `zotero_note_zh`
+   Use the provided note text directly when available instead of rewriting it.
+3. Add the daily analysis report and the daily summaries report as notes inside the Zotero collection named "daily analysis".
+
+Important requirements:
+- Use Zotero MCP for all Zotero operations.
+- Set attach_mode to "import" whenever the Zotero MCP operation supports that option.
+- Skip papers that are already present in the relevant Zotero collection instead of duplicating them.
+- Keep the collection structure clean and avoid unnecessary proliferation of collections.
+- Finish with a concise status report that includes uploaded paper count, skipped duplicate count, created collections, and added English/Chinese notes.

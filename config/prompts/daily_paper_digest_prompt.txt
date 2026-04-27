@@ -1,0 +1,68 @@
+Objective: Read every paper in the input JSON with full-text extraction first, then generate structured bilingual summaries and Zotero-ready notes.
+
+Current date: {current_date}
+Run ID: {run_id}
+
+Inputs:
+- Papers metadata JSON: {papers_json}
+
+Outputs you must create:
+- Structured summary JSON: {output_json}
+- Full-text Markdown directory: {fulltext_dir}
+
+Critical requirements:
+1. Read `papers_json` first to get the paper list.
+2. For each paper, use MinerU to parse the paper PDF from its public `pdf_url`. Save the extracted Markdown into `{fulltext_dir}`.
+3. Read the extracted full text before summarizing. Do not summarize from title/abstract only when full text is available.
+4. Follow this exact summarization instruction for every paper:
+   "Please read through the entire text first, and then summarize according to the following points:
+   1. Task definition (input and output), research background, and research motivation of the article.
+   2. Research method: A problem-solving approach that may include key processes and core formulas.
+   3. 4. Model evaluation metrics (what performance is measured and how is it calculated).
+   5. Experimental results and conclusions."
+5. Create BOTH Chinese and English versions of the summary and BOTH Chinese and English Zotero note bodies.
+6. If a paper cannot be parsed or summarized, still include it in the output JSON with `summary_error=true` and a short `summary_error_message`.
+7. Do not modify the input JSON.
+8. Write exactly one JSON file to `{output_json}`.
+
+Output JSON schema:
+```json
+{{
+  "date": "{current_date}",
+  "run_id": "{run_id}",
+  "papers": [
+    {{
+      "paper_id": "stable arXiv id without version suffix, e.g. 2604.12345",
+      "title": "paper title",
+      "fulltext_markdown": "filename only, e.g. 2604.12345.md",
+      "summary_error": false,
+      "summary_error_message": "",
+      "summary_zh": "concise Chinese summary paragraph(s)",
+      "summary_en": "concise English summary paragraph(s)",
+      "structured_summary": {{
+        "task_definition": "task definition with input/output",
+        "background_motivation": "research background and motivation",
+        "research_method": "main method, key pipeline, core formulas if present",
+        "evaluation_metrics": "what metrics are used and how they are computed",
+        "results_conclusions": "main experimental results and conclusions"
+      }},
+      "zotero_note_zh": "Markdown note in Chinese with clear section headings",
+      "zotero_note_en": "Markdown note in English with clear section headings"
+    }}
+  ]
+}}
+```
+
+Formatting requirements for `zotero_note_zh` and `zotero_note_en`:
+- Use Markdown.
+- Include these sections in order:
+  1. Task Definition / 任务定义
+  2. Background & Motivation / 研究背景与动机
+  3. Method / 方法
+  4. Evaluation Metrics / 评测指标
+  5. Results & Conclusions / 结果与结论
+
+Before finishing:
+- Verify that every paper from the input JSON appears once in the output JSON.
+- Verify that the output JSON is valid JSON.
+- Verify that every successful paper has both Chinese and English note bodies.

@@ -1,0 +1,17 @@
+[Unit]
+Description=Daily arXiv Web Interface
+After=network.target
+
+[Service]
+Type=simple
+User=jkcrystal
+WorkingDirectory=/home/jkcrystal/LLM/daily-arxiv-matrix-alg
+Environment="PATH=/home/jkcrystal/anaconda3/envs/daily-arxiv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/jkcrystal/anaconda3/envs/daily-arxiv/bin/python src/web/app.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/jkcrystal/LLM/daily-arxiv-matrix-alg/logs/web.log
+StandardError=append:/home/jkcrystal/LLM/daily-arxiv-matrix-alg/logs/web.error.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,460 @@
+/**
+ * Daily arXiv - 前端 JavaScript
+ */
+
+// 全局变量
+let currentPage = 1;
+let currentCategory = '';
+let allPapers = [];
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载统计信息
+    loadStats();
+    
+    // 加载趋势分析
+    loadAnalysis();
+    
+    // 加载论文列表
+    loadPapers();
+    
+    // 加载类别列表
+    loadCategories();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 滚动到顶部按钮
+    initScrollTop();
+});
+
+/**
+ * 加载统计信息
+ */
+async function loadStats() {
+    try {
+        const response = await fetch('/api/stats');
+        const stats = await response.json();
+        
+        document.getElementById('papers-count').textContent = stats.papers_count;
+        document.getElementById('summaries-count').textContent = stats.summaries_count;
+        
+        if (stats.last_update) {
+            document.getElementById('last-update').textContent = stats.last_update;
+        }
+        
+        // 加载分析数据以获取更多统计
+        const analysisResponse = await fetch('/api/analysis');
+        if (analysisResponse.ok) {
+            const analysis = await analysisResponse.json();
+            const keywords = analysis.keywords || [];
+            const categories = analysis.statistics?.category_distribution || {};
+            
+            document.getElementById('keywords-count').textContent = keywords.length;
+            document.getElementById('categories-count').textContent = Object.keys(categories).length;
+        }
+    } catch (error) {
+        console.error('加载统计信息失败:', error);
+    }
+}
+
+/**
+ * 加载趋势分析
+ */
+async function loadAnalysis() {
+    try {
+        const response = await fetch('/api/analysis');
+        const analysis = await response.json();
+        
+        // 加载词云图
+        loadWordcloud();
+        
+        // 加载 LLM 分析内容
+        const llmAnalysis = analysis.llm_analysis || {};
+        
+        // 研究热点
+        const hotspotsContent = llmAnalysis.hotspots_html || llmAnalysis.hotspots || '暂无数据';
+        document.getElementById('hotspots-content').innerHTML = hotspotsContent;
+        
+        // 技术趋势
+        const trendsContent = llmAnalysis.trends_html || llmAnalysis.trends || '暂无数据';
+        document.getElementById('trends-content').innerHTML = trendsContent;
+        
+        // 未来方向
+        const futureContent = llmAnalysis.future_directions_html || llmAnalysis.future_directions || '暂无数据';
+        document.getElementById('future-content').innerHTML = futureContent;
+        
+        // 创新想法
+        const ideasContent = llmAnalysis.research_ideas_html || llmAnalysis.research_ideas || '暂无数据';
+        document.getElementById('ideas-content').innerHTML = ideasContent;
+        
+    } catch (error) {
+        console.error('加载趋势分析失败:', error);
+        showError('wordcloud-section', '加载趋势分析失败');
+    }
+}
+
+/**
+ * 加载词云图
+ */
+async function loadWordcloud() {
+    try {
+        const response = await fetch('/api/wordcloud');
+        const data = await response.json();
+        
+        const container = document.getElementById('wordcloud-section');
+        
+        if (data.url) {
+            container.innerHTML = `
+                <img src="${data.url}" alt="词云图" class="img-fluid">
+                <p class="text-muted mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    字体大小反映关键词在论文中出现的频率
+                </p>
+            `;
+        } else {
+            container.innerHTML = '<p class="text-muted">词云图暂不可用</p>';
+        }
+    } catch (error) {
+        console.error('加载词云图失败:', error);
+        document.getElementById('wordcloud-section').innerHTML = 
+            '<p class="text-danger">加载词云图失败</p>';
+    }
+}
+
+/**
+ * 加载论文列表
+ */
+async function loadPapers(page = 1, category = '') {
+    try {
+        currentPage = page;
+        currentCategory = category;
+        
+        const url = `/api/papers?page=${page}&per_page=10&category=${category}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        allPapers = data.papers;
+        renderPapers(data.papers);
+        renderPagination(data.total_pages, page);
+        
+    } catch (error) {
+        console.error('加载论文列表失败:', error);
+        showError('papers-list', '加载论文列表失败');
+    }
+}
+
+/**
+ * 渲染论文列表
+ */
+function renderPapers(papers) {
+    const container = document.getElementById('papers-list');
+    
+    if (papers.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                没有找到符合条件的论文
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    papers.forEach((paper, index) => {
+        html += renderPaperCard(paper, index);
+    });
+    
+    container.innerHTML = html;
+}
+
+/**
+ * 渲染单个论文卡片
+ */
+function renderPaperCard(paper, index) {
+    const authors = paper.authors.slice(0, 3).join(', ') + 
+                   (paper.authors.length > 3 ? ' et al.' : '');
+    
+    const categories = paper.categories.map(cat => 
+        `<span class="category-badge">${cat}</span>`
+    ).join('');
+    
+    const publishDate = new Date(paper.published).toLocaleDateString('zh-CN');
+    
+    return `
+        <div class="paper-card" data-paper-id="${paper.id}">
+            <div class="paper-title">
+                ${index + 1}. ${paper.title}
+            </div>
+            
+            <div class="paper-meta">
+                <div class="paper-meta-item">
+                    <i class="fas fa-user"></i>
+                    <span>${authors}</span>
+                </div>
+                <div class="paper-meta-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>${publishDate}</span>
+                </div>
+            </div>
+            
+            <div class="paper-categories">
+                ${categories}
+            </div>
+            
+            <div class="paper-abstract">
+                ${paper.abstract.substring(0, 300)}...
+            </div>
+            
+            <div class="paper-actions">
+                <a href="${paper.pdf_url}" target="_blank" class="btn-paper btn-pdf">
+                    <i class="fas fa-file-pdf"></i>
+                    查看 PDF
+                </a>
+                <a href="${paper.entry_url}" target="_blank" class="btn-paper btn-details">
+                    <i class="fas fa-external-link-alt"></i>
+                    arXiv 详情
+                </a>
+                <button class="btn-paper btn-details" onclick="showPaperDetail('${paper.id}')">
+                    <i class="fas fa-info-circle"></i>
+                    查看总结
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * 渲染分页
+ */
+function renderPagination(totalPages, currentPage) {
+    const container = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    
+    // 上一页
+    html += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadPapers(${currentPage - 1}, '${currentCategory}'); return false;">
+                上一页
+            </a>
+        </li>
+    `;
+    
+    // 页码
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="loadPapers(${i}, '${currentCategory}'); return false;">
+                    ${i}
+                </a>
+            </li>
+        `;
+    }
+    
+    // 下一页
+    html += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadPapers(${currentPage + 1}, '${currentCategory}'); return false;">
+                下一页
+            </a>
+        </li>
+    `;
+    
+    container.innerHTML = html;
+}
+
+/**
+ * 加载类别列表
+ */
+async function loadCategories() {
+    try {
+        const response = await fetch('/api/categories');
+        const categories = await response.json();
+        
+        const select = document.getElementById('category-filter');
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.textContent = `${cat.name} (${cat.count})`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('加载类别列表失败:', error);
+    }
+}
+
+/**
+ * 显示论文详情（包括总结）
+ */
+async function showPaperDetail(paperId) {
+    try {
+        const response = await fetch(`/api/papers/${paperId}`);
+        const paper = await response.json();
+        
+        let summaryHtml = '';
+        if (paper.summary) {
+            const summary = paper.summary;
+            summaryHtml = `
+                <h5 class="mt-3">📝 论文总结</h5>
+                <div class="alert alert-info">
+                    <p><strong>核心创新点：</strong>${summary.key_innovation || '暂无'}</p>
+                    <p><strong>主要方法：</strong>${summary.main_method || '暂无'}</p>
+                    <p><strong>主要结果：</strong>${summary.main_results || '暂无'}</p>
+                    <p><strong>局限性：</strong>${summary.limitations || '暂无'}</p>
+                    <p><strong>一句话总结：</strong>${summary.one_sentence_summary || '暂无'}</p>
+                </div>
+            `;
+        } else {
+            summaryHtml = '<p class="text-muted">该论文暂无总结</p>';
+        }
+        
+        // 创建模态框显示详情
+        const modal = `
+            <div class="modal fade" id="paperModal" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${paper.title}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>作者：</strong>${paper.authors.join(', ')}</p>
+                            <p><strong>发布时间：</strong>${new Date(paper.published).toLocaleDateString('zh-CN')}</p>
+                            <p><strong>类别：</strong>${paper.categories.join(', ')}</p>
+                            <hr>
+                            <h5>摘要</h5>
+                            <p>${paper.abstract}</p>
+                            ${summaryHtml}
+                        </div>
+                        <div class="modal-footer">
+                            <a href="${paper.pdf_url}" target="_blank" class="btn btn-danger">
+                                <i class="fas fa-file-pdf me-2"></i>查看 PDF
+                            </a>
+                            <a href="${paper.entry_url}" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt me-2"></i>arXiv 详情
+                            </a>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 移除旧的模态框
+        const oldModal = document.getElementById('paperModal');
+        if (oldModal) {
+            oldModal.remove();
+        }
+        
+        // 添加新模态框
+        document.body.insertAdjacentHTML('beforeend', modal);
+        
+        // 显示模态框
+        const modalElement = document.getElementById('paperModal');
+        const bsModal = new bootstrap.Modal(modalElement);
+        bsModal.show();
+        
+        // 模态框关闭后移除
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            modalElement.remove();
+        });
+        
+    } catch (error) {
+        console.error('加载论文详情失败:', error);
+        alert('加载论文详情失败');
+    }
+}
+
+/**
+ * 绑定事件
+ */
+function bindEvents() {
+    // 类别筛选
+    document.getElementById('category-filter').addEventListener('change', function(e) {
+        loadPapers(1, e.target.value);
+    });
+    
+    // 搜索
+    let searchTimeout;
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchPapers(e.target.value);
+        }, 500);
+    });
+}
+
+/**
+ * 搜索论文
+ */
+function searchPapers(query) {
+    if (!query.trim()) {
+        renderPapers(allPapers);
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    const filtered = allPapers.filter(paper => {
+        return paper.title.toLowerCase().includes(lowerQuery) ||
+               paper.abstract.toLowerCase().includes(lowerQuery) ||
+               paper.authors.some(author => author.toLowerCase().includes(lowerQuery));
+    });
+    
+    renderPapers(filtered);
+}
+
+/**
+ * 显示错误信息
+ */
+function showError(containerId, message) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+        </div>
+    `;
+}
+
+/**
+ * 初始化滚动到顶部按钮
+ */
+function initScrollTop() {
+    const scrollTop = document.getElementById('scroll-top');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            scrollTop.classList.add('visible');
+        } else {
+            scrollTop.classList.remove('visible');
+        }
+    });
+    
+    scrollTop.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+/**
+ * 格式化日期
+ */
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}

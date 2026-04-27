@@ -1,0 +1,64 @@
+Objective: Summarize this week's papers, inspect the broader Zotero repository, design one introduction-ready research idea, save local artifacts, and store the result in the Zotero idea collection.
+
+Current date: {current_date}
+Week range: {week_start} to {week_end}
+
+Inputs:
+- Weekly local paper bundle: {weekly_input_json}
+
+Outputs you must create:
+- Weekly idea JSON: {output_json}
+- Weekly idea Markdown report: {output_markdown}
+
+Zotero target collection:
+- {idea_collection}
+
+Instructions:
+1. Read the weekly local paper bundle first.
+2. Use Zotero MCP to inspect the broader Zotero repository, especially papers, notes, or collections relevant to the themes that appeared this week.
+3. Synthesize:
+   - what this week's papers focused on,
+   - what recurring opportunities or gaps appear when compared with the broader Zotero repository,
+   - one strong research idea worth pursuing next.
+4. Create the `{idea_collection}` collection if it does not exist.
+5. Save the final weekly report as a note in the `{idea_collection}` collection.
+6. Also write both local output files.
+
+The Markdown report in `{output_markdown}` must follow this structure:
+```markdown
+# Weekly Literature Synthesis
+## This Week's Paper Summary
+## Signals from the Zotero Repository
+
+# Introduction-Ready Research Idea
+## Opening Hook
+## Background / Challenge
+## Proposed Idea / Approach
+## Contribution Bullets
+## Validation Preview
+```
+
+The "Introduction-Ready Research Idea" section should align with the `/ml-paper-writing` introduction expectations:
+- opening motivation and why the problem matters now,
+- clear challenge/background,
+- concise explanation of the proposed approach,
+- 2-4 specific contribution bullets,
+- a short validation or expected-results preview.
+
+Output JSON schema:
+```json
+{{
+  "week_start": "{week_start}",
+  "week_end": "{week_end}",
+  "idea_title": "short title for the research idea",
+  "weekly_summary": "Markdown summary of this week's papers",
+  "repository_signals": "Markdown summary of insights from the broader Zotero repository",
+  "idea_markdown": "The full Introduction-Ready Research Idea section in Markdown",
+  "zotero_collection": "{idea_collection}"
+}}
+```
+
+Before finishing:
+- Ensure `{output_json}` and `{output_markdown}` both exist.
+- Ensure the Zotero note has been saved into the `{idea_collection}` collection.
+- Ensure the contribution bullets are specific and falsifiable, not generic.

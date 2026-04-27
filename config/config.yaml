@@ -1,0 +1,201 @@
+# Daily arXiv Agent Configuration
+
+# arXiv 搜索配置
+arxiv:
+  # 研究领域类别 (可以是多个)
+  # 常见类别: cs.AI, cs.LG, cs.CV, cs.CL, cs.NE, stat.ML
+  categories:
+    - "cs.AI"  # Artificial Intelligence
+    - "cs.LG"  # Machine Learning
+    - "cs.CV"  # Computer Vision
+    - "cs.CL"  # Computational Linguistics
+    - "cs.MM"
+    - "cs.OS"
+    - "cs.RO"
+    - "q-fin.CP"
+    - "cs.SD"
+    - "cs.NE"  # Neural and Evolutionary Computing
+    - "stat.ML"  # Statistical Machine Learning
+  
+  # 关键词过滤 (可选，为空则不过滤)
+  keywords:
+    - "diffusion large language model"
+    - "large diffusion language model"
+    - "multi-modal large diffusion language model"
+    - "diffusion multi-modal large language model"
+    - "mask diffusion language model"
+    - "action quality assessment"
+    - "temporal action localization"
+    - "spatial-temporal action localization"
+    - "figure skating"
+    - "world model"
+    - "sport agent"
+    - "sport AI"
+    - "sport artificial intelligence"
+    # - "anything"
+    # - "diffusion"
+    # - "large language model"
+    # - "LLM"
+    # - "multi-modal"
+    - "skeleton"
+    - "action recognition"
+    # - "artificial intelligence"
+    - "new architecture"
+    # - "transformer"
+
+  # 每天获取的最大论文数量
+  max_results: 50
+  days_back: 1
+  
+  # 排序方式: submittedDate (提交日期) 或 relevance (相关性)
+  sort_by: "submittedDate"
+  
+  # 排序顺序: descending 或 ascending
+  sort_order: "descending"
+
+# Agent 配置（新的默认工作流）
+agent:
+  copilot_command: "copilot"
+  model: ""
+  reasoning_effort: "high"
+
+  summary:
+    prompt_file: "config/prompts/daily_paper_digest_prompt.txt"
+    log_dir: "logs/daily_digest"
+    timeout_minutes: 360
+    fulltext_dir: "data/fulltext"
+
+  analysis:
+    prompt_file: "config/prompts/daily_trend_analysis_prompt.txt"
+    log_dir: "logs/daily_analysis"
+    timeout_minutes: 360
+
+# 流水线后端选择
+pipeline:
+  summary_backend: "agent"   # agent 或 llm
+  analysis_backend: "agent"  # agent 或 llm
+
+# LLM 配置（旧流程兼容，可选）
+llm:
+  # 提供商: openai, gemini, claude, deepseek, vllm
+  provider: "deepseek"
+  
+  # OpenAI 配置
+  openai:
+    api_key: ""  # 在 .env 文件中设置
+    model: "gpt-4o-mini"  # gpt-4, gpt-4o, gpt-3.5-turbo
+    base_url: ""  # 可选，用于代理或自定义端点
+    temperature: 0.7
+    max_tokens: 1500
+  
+  # Google Gemini 配置
+  gemini:
+    api_key: ""  # 在 .env 文件中设置
+    model: "gemini-1.5-flash"  # gemini-pro, gemini-1.5-flash, gemini-1.5-pro
+    temperature: 0.7
+    max_tokens: 1500
+  
+  # Anthropic Claude 配置
+  claude:
+    api_key: ""  # 在 .env 文件中设置
+    model: "claude-opus-4-6-thinking"  # claude-3-opus, claude-3-sonnet, claude-3-haiku
+    base_url: "https://linkapi.ai"  # 可选，用于代理或自定义端点
+    temperature: 0.7
+    max_tokens: 8192
+
+  # DeepSeek 配置
+  deepseek:
+    api_key: ""  # 在 .env 文件中设置
+    model: "deepseek-chat"  # deepseek-chat, deepseek-coder
+    base_url: "https://api.deepseek.com/v1"
+    temperature: 0.7
+    max_tokens: 4096
+  
+  # vLLM (OpenAI 兼容 API)
+  vllm:
+    api_key: "EMPTY"  # vLLM 通常不需要 API Key
+    model: "gpt-oss-120b"  # 你部署的模型名称 example: gpt-oss-120b
+    base_url: "http://172.24.128.111:30207/v1"  # vLLM 服务地址 example: http://172.24.128.111:30207/v1
+    temperature: 0.2
+    max_tokens: 130000
+
+# Web 服务配置
+web:
+  host: "0.0.0.0"
+  port: 15000
+  debug: true
+  title: "Daily arXiv - AI Research Tracker"
+  description: "每日追踪最新的 AI 研究论文"
+
+# 调度配置
+scheduler:
+  # 是否启用自动调度
+  enabled: true
+  
+  # 运行时间 (24小时制, HH:MM 格式)
+  run_time: "09:00"
+  
+  # 时区
+  timezone: "Asia/Shanghai"
+  
+  # 启动时是否立即运行一次
+  run_on_start: true
+
+  # 每日 Zotero 上传任务
+  zotero_upload:
+    enabled: true
+    run_time: "16:00"
+    run_on_start: true
+    copilot_command: "copilot"
+    model: ""
+    reasoning_effort: "high"
+    timeout_minutes: 180
+    artifact_wait_minutes: 180
+    artifact_check_interval_seconds: 60
+    prompt_file: "config/prompts/zotero_daily_upload_prompt.txt"
+    log_dir: "logs/zotero_upload"
+
+  # 每周四研究综述与 idea 任务
+  weekly_idea:
+    enabled: true
+    day_of_week: "thu"
+    run_time: "20:00"
+    run_on_start: false
+    timeout_minutes: 180
+    prompt_file: "config/prompts/weekly_zotero_idea_prompt.txt"
+    log_dir: "logs/weekly_idea"
+    collection_name: "idea"
+  
+  # 邮件通知配置 (可选)
+  notification:
+    enabled: false
+    email:
+      smtp_server: "smtp.gmail.com"
+      smtp_port: 587
+      sender: ""  # 发件人邮箱
+      password: ""  # 在 .env 文件中设置 EMAIL_PASSWORD
+      recipients:  # 收件人列表
+        - "your-email@example.com"
+      on_success: true  # 成功时发送通知
+      on_failure: true  # 失败时发送通知
+
+# 数据存储配置
+storage:
+  # 存储类型: json 或 sqlite
+  type: "json"
+  
+  # JSON 存储路径
+  json_path: "data/papers"
+  
+  # SQLite 数据库路径
+  sqlite_path: "data/arxiv.db"
+  
+  # 保留历史数据的天数 (0 表示永久保留)
+  retention_days: 0
+
+# 日志配置
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/daily_arxiv.log"
+  console: true

@@ -9,11 +9,14 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 import pytz
 
 
 PAPER_VERSION_PATTERN = re.compile(r"v\d+$")
+ARXIV_HOSTS = {"arxiv.org", "www.arxiv.org", "export.arxiv.org"}
+ARXIV_PAPER_PATH_PATTERN = re.compile(r"^/(?:abs|pdf)/(?P<paper_id>[^?#/]+?)(?:\.pdf)?/?$")
 
 
 def load_config(config_path: str = "config/config.yaml") -> Dict[str, Any]:
@@ -191,6 +194,36 @@ def get_paper_identity(paper: Dict[str, Any]) -> str:
         raise ValueError(f"论文缺少可用于识别的标识: {paper}")
 
     return PAPER_VERSION_PATTERN.sub('', paper_id)
+
+
+def normalize_arxiv_pdf_url(pdf_url: str | None, entry_url: str | None = None) -> str:
+    """将 arXiv PDF 链接规范化为带 .pdf 后缀的稳定形式。"""
+    for candidate in [str(pdf_url or '').strip(), str(entry_url or '').strip()]:
+        if not candidate:
+            continue
+
+        parsed = urlparse(candidate)
+        if parsed.netloc.lower() not in ARXIV_HOSTS:
+            continue
+
+        match = ARXIV_PAPER_PATH_PATTERN.match(parsed.path)
+        if not match:
+            continue
+
+        paper_id = match.group('paper_id')
+        return f"https://arxiv.org/pdf/{paper_id}.pdf"
+
+    return str(pdf_url or '').strip()
+
+
+def normalize_paper_pdf_url(paper: Dict[str, Any]) -> Dict[str, Any]:
+    """返回带规范化 PDF 链接的论文对象副本。"""
+    normalized_paper = dict(paper)
+    normalized_paper['pdf_url'] = normalize_arxiv_pdf_url(
+        paper.get('pdf_url'),
+        paper.get('entry_url'),
+    )
+    return normalized_paper
 
 
 def build_paper_set_signature(papers: List[Dict[str, Any]]) -> str:

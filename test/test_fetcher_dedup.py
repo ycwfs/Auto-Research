@@ -88,6 +88,13 @@ def test_history_dedup():
                 [paper["id"] for paper in prepared["daily_papers"]]
                 == ["2604.00003v1", "2604.00002v1"],
             ),
+            (
+                "arxiv pdf links are normalized with .pdf suffix",
+                all(
+                    paper["pdf_url"].endswith(".pdf")
+                    for paper in prepared["daily_papers"]
+                ),
+            ),
         ]
 
         all_passed = True

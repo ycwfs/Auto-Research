@@ -17,13 +17,15 @@ Critical requirements:
 4. Follow this exact summarization instruction for every paper:
    "Please read through the entire text first, and then summarize according to the following points:
    1. Task definition (input and output), research background, and research motivation of the article.
-   2. Research method: A problem-solving approach that may include key processes and core formulas.
-   3. 4. Model evaluation metrics (what performance is measured and how is it calculated).
-   5. Experimental results and conclusions."
+   2. Innovations: innovation points that tackle each problem.
+   3. Research method: A problem-solving approach that may include key processes and core formulas.
+   4. 5. Model evaluation metrics (what performance is measured and how is it calculated).
+   6. Experimental results and conclusions."
 5. Create BOTH Chinese and English versions of the summary and BOTH Chinese and English Zotero note bodies.
-6. If a paper cannot be parsed or summarized, still include it in the output JSON with `summary_error=true` and a short `summary_error_message`.
-7. Do not modify the input JSON.
-8. Write exactly one JSON file to `{output_json}`.
+6. If the PDF URL fails but another public full-text fallback (for example, arXiv HTML) is successfully parsed and you can still produce the required bilingual summaries and note bodies, treat the paper as successful with `summary_error=false`.
+7. Only use `summary_error=true` when you could not produce a usable full-text-backed summary package for that paper.
+8. Do not modify the input JSON.
+9. Write exactly one JSON file to `{output_json}`.
 
 Output JSON schema:
 ```json
@@ -42,6 +44,7 @@ Output JSON schema:
       "structured_summary": {{
         "task_definition": "task definition with input/output",
         "background_motivation": "research background and motivation",
+        "Innovations": "innovation points that tackle each problem",
         "research_method": "main method, key pipeline, core formulas if present",
         "evaluation_metrics": "what metrics are used and how they are computed",
         "results_conclusions": "main experimental results and conclusions"
@@ -58,9 +61,10 @@ Formatting requirements for `zotero_note_zh` and `zotero_note_en`:
 - Include these sections in order:
   1. Task Definition / 任务定义
   2. Background & Motivation / 研究背景与动机
-  3. Method / 方法
-  4. Evaluation Metrics / 评测指标
-  5. Results & Conclusions / 结果与结论
+  3. Innovations / 创新点
+  4. Method / 方法
+  5. Evaluation Metrics / 评测指标
+  6. Results & Conclusions / 结果与结论
 
 Before finishing:
 - Verify that every paper from the input JSON appears once in the output JSON.

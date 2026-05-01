@@ -20,6 +20,8 @@ class BaseLLMClient(ABC):
         self.model = config.get('model', '')
         self.temperature = config.get('temperature', 0.7)
         self.max_tokens = config.get('max_tokens', 1500)
+        self.thinking = config.get('thinking', '')
+        self.reasoning_effort = config.get('reasoning_effort', '')
     
     @abstractmethod
     def generate(self, prompt: str, system_prompt: str = None, max_tokens: int = None) -> str:

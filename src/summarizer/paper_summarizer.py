@@ -27,6 +27,7 @@ from src.utils import (
     get_current_datetime,
     get_date_string,
     get_paper_identity,
+    normalize_paper_pdf_url,
     save_json,
 )
 from .llm_factory import LLMClientFactory
@@ -96,6 +97,7 @@ class PaperSummarizer:
     ) -> list[dict[str, Any]]:
         """批量总结论文。"""
         del show_progress  # 保持兼容旧接口
+        papers = [normalize_paper_pdf_url(paper) for paper in papers]
         if not papers:
             self.logger.warning("没有论文需要总结")
             return []
@@ -238,6 +240,7 @@ JSON schema:
   "structured_summary": {{
     "task_definition": "任务定义（输入输出）",
     "background_motivation": "研究背景与动机",
+    "innovations": "主要创新点",
     "research_method": "主要方法、关键流程、核心公式（如果摘要明确提到）",
     "evaluation_metrics": "评测指标及其含义/计算方式（若摘要未明确说明则直说）",
     "results_conclusions": "实验结果与结论"
@@ -307,6 +310,7 @@ JSON schema:
             headings = [
                 ("任务定义", "task_definition"),
                 ("研究背景与动机", "background_motivation"),
+                ("主要创新点", "innovations"),
                 ("方法", "research_method"),
                 ("评测指标", "evaluation_metrics"),
                 ("结果与结论", "results_conclusions"),
@@ -316,6 +320,7 @@ JSON schema:
             headings = [
                 ("Task Definition", "task_definition"),
                 ("Background & Motivation", "background_motivation"),
+                ("Main Innovations", "innovations"),
                 ("Method", "research_method"),
                 ("Evaluation Metrics", "evaluation_metrics"),
                 ("Results & Conclusions", "results_conclusions"),
@@ -357,6 +362,19 @@ JSON schema:
 
         return data
 
+    @staticmethod
+    def _has_usable_summary_content(output_item: dict[str, Any]) -> bool:
+        """判断代理输出是否已经包含完整的双语总结与笔记。"""
+        summary_zh = str(output_item.get("summary_zh") or "").strip()
+        summary_en = str(output_item.get("summary_en") or "").strip()
+        note_zh = str(output_item.get("zotero_note_zh") or "").strip()
+        note_en = str(output_item.get("zotero_note_en") or "").strip()
+        structured_summary = output_item.get("structured_summary")
+        has_structured_summary = isinstance(structured_summary, dict) and any(
+            str(value).strip() for value in structured_summary.values()
+        )
+        return all([summary_zh, summary_en, note_zh, note_en, has_structured_summary])
+
     def _merge_summaries(
         self,
         *,
@@ -382,7 +400,7 @@ JSON schema:
         for paper in papers:
             paper_identity = get_paper_identity(paper)
             output_item = output_by_identity.get(paper_identity)
-            merged = paper.copy()
+            merged = normalize_paper_pdf_url(paper)
             merged["paper_id"] = paper_identity
             merged["summarized_at"] = get_current_datetime(self.config).isoformat()
 
@@ -414,6 +432,8 @@ JSON schema:
                     )
 
             summary_error = bool(output_item.get("summary_error"))
+            if summary_error and self._has_usable_summary_content(output_item):
+                summary_error = False
             merged["summary_error"] = summary_error
             if summary_error:
                 merged["summary_error_message"] = str(
@@ -421,6 +441,8 @@ JSON schema:
                 )
                 if not merged["summary"]:
                     merged["summary"] = merged["summary_error_message"]
+            else:
+                merged["summary_error_message"] = ""
 
             merged_papers.append(merged)
 

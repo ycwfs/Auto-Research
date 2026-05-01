@@ -38,12 +38,17 @@ The Markdown report in `{output_markdown}` must follow this structure:
 ## Validation Preview
 ```
 
-The "Introduction-Ready Research Idea" section should align with the `/ml-paper-writing` introduction expectations:
+The "Introduction-Ready Research Idea" section must be self-contained and follow these introduction expectations:
 - opening motivation and why the problem matters now,
 - clear challenge/background,
 - concise explanation of the proposed approach,
 - 2-4 specific contribution bullets,
 - a short validation or expected-results preview.
+
+Do not invoke external writing skills or read external reference files outside the provided inputs and Zotero MCP context. Use only:
+- the weekly local paper bundle,
+- Zotero MCP results,
+- the structure and requirements written in this prompt.
 
 Output JSON schema:
 ```json

@@ -24,7 +24,7 @@ class DeepSeekClient(BaseLLMClient):
             raise ValueError("DeepSeek API Key 未设置！请在 .env 文件中设置 DEEPSEEK_API_KEY")
         
         # 获取 Base URL
-        base_url = config.get('base_url', 'https://api.deepseek.com/v1')
+        base_url = config.get('base_url', 'https://api.deepseek.com/')
         
         # 创建客户端（使用 OpenAI SDK）
         self.client = OpenAI(
@@ -50,6 +50,8 @@ class DeepSeekClient(BaseLLMClient):
                 messages=messages,
                 temperature=self.temperature,
                 max_tokens=tokens,
+                reasoning_effort=self.reasoning_effort,
+                extra_body={'thinking':{'type':self.thinking}}
             )
             
             return response.choices[0].message.content.strip()

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +21,15 @@ from src.utils import get_current_datetime, save_json, save_text, load_json
 
 
 DEFAULT_PROMPT_FILE = Path("config/prompts/weekly_zotero_idea_prompt.txt")
+WEEKDAY_TO_INDEX = {
+    "mon": 0,
+    "tue": 1,
+    "wed": 2,
+    "thu": 3,
+    "fri": 4,
+    "sat": 5,
+    "sun": 6,
+}
 
 
 class WeeklyIdeaSkippedError(RuntimeError):
@@ -32,24 +41,34 @@ def get_weekly_idea_config(config: dict[str, Any]) -> dict[str, Any]:
     return config.get("scheduler", {}).get("weekly_idea", {})
 
 
-def get_week_range(config: dict[str, Any]) -> tuple[str, str]:
-    """Return Monday-to-current-date range in scheduler timezone."""
-    current_datetime = get_current_datetime(config)
-    start_date = current_datetime.date() - timedelta(days=current_datetime.weekday())
-    end_date = current_datetime.date()
+def _get_weekly_anchor_weekday(config: dict[str, Any]) -> int:
+    """Return the configured weekly anchor weekday as a Python weekday index."""
+    weekday_name = str(get_weekly_idea_config(config).get("day_of_week", "thu")).strip().lower()
+    weekday_index = WEEKDAY_TO_INDEX.get(weekday_name)
+    if weekday_index is None:
+        raise ValueError(f"weekly_idea.day_of_week 配置无效: {weekday_name}")
+    return weekday_index
+
+
+def get_week_range(
+    config: dict[str, Any], reference_datetime: datetime | None = None
+) -> tuple[str, str]:
+    """Return the last completed weekly window anchored to the configured weekday."""
+    current_datetime = reference_datetime or get_current_datetime(config)
+    anchor_weekday = _get_weekly_anchor_weekday(config)
+    end_date = current_datetime.date() - timedelta(
+        days=(current_datetime.date().weekday() - anchor_weekday) % 7
+    )
+    start_date = end_date - timedelta(days=7)
     return start_date.isoformat(), end_date.isoformat()
 
 
 def _collect_weekly_material(config: dict[str, Any]) -> dict[str, Any]:
     week_start, week_end = get_week_range(config)
-    current_date = week_start
-    end_date = week_end
 
     weekly_days: list[dict[str, Any]] = []
-    start_dt = get_current_datetime(config).date() - timedelta(
-        days=get_current_datetime(config).weekday()
-    )
-    end_dt = get_current_datetime(config).date()
+    start_dt = datetime.fromisoformat(week_start).date()
+    end_dt = datetime.fromisoformat(week_end).date()
     total_papers = 0
 
     day = start_dt

@@ -19,6 +19,7 @@ from src.utils import (
     get_date_string,
     get_data_path,
     load_json,
+    normalize_paper_pdf_url,
     save_json,
 )
 
@@ -157,6 +158,7 @@ class ArxivFetcher:
         for paper in existing_today_papers:
             if not isinstance(paper, dict):
                 raise ValueError("当天论文记录格式错误，期望对象")
+            paper = normalize_paper_pdf_url(paper)
 
             paper_key = self._get_paper_key(paper)
             if paper_key in historical_ids or paper_key in existing_today_ids:
@@ -170,6 +172,7 @@ class ArxivFetcher:
         duplicate_count = 0
 
         for paper in fetched_papers:
+            paper = normalize_paper_pdf_url(paper)
             paper_key = self._get_paper_key(paper)
             if (
                 paper_key in historical_ids
@@ -369,7 +372,8 @@ class ArxivFetcher:
         Returns:
             论文信息字典
         """
-        return {
+        return normalize_paper_pdf_url(
+            {
             'id': result.entry_id.split('/')[-1],  # arXiv ID
             'title': result.title,
             'authors': [author.name for author in result.authors],
@@ -384,7 +388,8 @@ class ArxivFetcher:
             'journal_ref': result.journal_ref if hasattr(result, 'journal_ref') else None,
             'doi': result.doi if hasattr(result, 'doi') else None,
             'fetched_at': get_current_datetime(self.config).isoformat(),
-        }
+            }
+        )
     
     def _save_papers(self, papers: List[Dict[str, Any]]):
         """保存论文数据

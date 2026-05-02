@@ -147,6 +147,17 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
     )
     log_dir = resolve_project_path(weekly_config.get("log_dir", "logs/weekly_idea"))
     collection_name = weekly_config.get("collection_name", "idea")
+    focus_keywords = weekly_config.get("focus_keywords", [])
+    if isinstance(focus_keywords, str):
+        focus_keywords = [focus_keywords]
+    focus_keywords = [
+        str(keyword).strip() for keyword in focus_keywords if str(keyword).strip()
+    ]
+    focus_keywords_block = (
+        "\n".join(f"- {keyword}" for keyword in focus_keywords)
+        if focus_keywords
+        else "- No extra keyword restriction configured."
+    )
 
     timestamp = get_current_datetime(config).strftime("%Y%m%d_%H%M%S")
     workspace_dir = log_dir / f"workspace_{timestamp}"
@@ -170,6 +181,7 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
         output_json=output_json_path,
         output_markdown=output_markdown_path,
         idea_collection=collection_name,
+        focus_keywords_block=focus_keywords_block,
     )
     prompt_snapshot.write_text(prompt, encoding="utf-8")
 

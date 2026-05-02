@@ -163,6 +163,10 @@ scheduler:
     enabled: true
     day_of_week: "thu"
     run_time: "11:00"
+    focus_keywords:
+      - "world model"
+      - "agentic system"
+      - "robotics"
 ```
 
 ### 6. 运行测试

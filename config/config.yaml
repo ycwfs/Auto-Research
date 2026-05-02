@@ -167,6 +167,10 @@ scheduler:
     prompt_file: "config/prompts/weekly_zotero_idea_prompt.txt"
     log_dir: "logs/weekly_idea"
     collection_name: "idea"
+    focus_keywords:
+      - "video understanding"
+      - "action quality assessment"
+      - "world model"
   
   # 邮件通知配置 (可选)
   notification:

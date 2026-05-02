@@ -29,6 +29,7 @@ def test_weekly_idea_config():
         "run_time",
         "prompt_file",
         "collection_name",
+        "focus_keywords",
     ]
     all_present = True
     for key in required_keys:
@@ -54,6 +55,16 @@ def test_weekly_idea_config():
             print("  ✅ prompt_file 已显式禁止读取外部参考文件")
         else:
             print("  ❌ prompt_file 缺少外部权限保护说明")
+            all_present = False
+        if "{focus_keywords_block}" in prompt_text:
+            print("  ✅ prompt_file 包含关键词范围占位符")
+        else:
+            print("  ❌ prompt_file 缺少关键词范围占位符")
+            all_present = False
+        if "Restrict the proposed research idea to the field defined by the keyword list above." in prompt_text:
+            print("  ✅ prompt_file 已显式要求 idea 受关键词范围约束")
+        else:
+            print("  ❌ prompt_file 缺少 idea 领域约束说明")
             all_present = False
     else:
         print(f"  ❌ prompt_file 不存在: {prompt_path}")

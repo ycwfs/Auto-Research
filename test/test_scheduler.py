@@ -73,7 +73,7 @@ def test_scheduler_config():
     print("\n测试 4: 检查周度 idea 配置")
     weekly_config = scheduler_config.get('weekly_idea', {})
     if weekly_config.get('enabled', False):
-        weekly_keys = ['day_of_week', 'run_time', 'prompt_file', 'collection_name']
+        weekly_keys = ['day_of_week', 'run_time', 'prompt_file', 'collection_name', 'focus_keywords']
         weekly_ok = True
         for key in weekly_keys:
             if key in weekly_config and weekly_config[key]:

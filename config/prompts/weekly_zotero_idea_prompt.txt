@@ -13,16 +13,21 @@ Outputs you must create:
 Zotero target collection:
 - {idea_collection}
 
+Field restriction keywords:
+{focus_keywords_block}
+
 Instructions:
 1. Read the weekly local paper bundle first.
 2. Use Zotero MCP to inspect the broader Zotero repository, especially papers, notes, or collections relevant to the themes that appeared this week.
 3. Synthesize:
-   - what this week's papers focused on,
-   - what recurring opportunities or gaps appear when compared with the broader Zotero repository,
-   - one strong research idea worth pursuing next.
-4. Create the `{idea_collection}` collection if it does not exist.
-5. Save the final weekly report as a note in the `{idea_collection}` collection.
-6. Also write both local output files.
+    - what this week's papers focused on,
+    - what recurring opportunities or gaps appear when compared with the broader Zotero repository,
+    - one strong research idea worth pursuing next.
+4. Restrict the proposed research idea to the field defined by the keyword list above. The core task, motivation, method, and validation plan must stay clearly aligned with those keywords, rather than drifting to unrelated domains.
+5. If multiple directions are possible, prefer the one that best matches the keyword list while still being strongly supported by this week's papers and the Zotero repository.
+6. Create the `{idea_collection}` collection if it does not exist.
+7. Save the final weekly report as a note in the `{idea_collection}` collection.
+8. Also write both local output files.
 
 The Markdown report in `{output_markdown}` must follow this structure:
 ```markdown
@@ -44,6 +49,7 @@ The "Introduction-Ready Research Idea" section must be self-contained and follow
 - concise explanation of the proposed approach,
 - 2-4 specific contribution bullets,
 - a short validation or expected-results preview.
+- the idea must remain inside the research field implied by the configured keyword list.
 
 Do not invoke external writing skills or read external reference files outside the provided inputs and Zotero MCP context. Use only:
 - the weekly local paper bundle,

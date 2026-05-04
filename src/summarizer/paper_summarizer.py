@@ -14,12 +14,12 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from src.automation.copilot_runner import (
+from src.automation.cli_runner import (
     PROJECT_ROOT,
-    build_copilot_command,
+    build_cli_command,
     get_configured_mcp_servers,
     resolve_project_path,
-    validate_copilot_environment,
+    validate_cli_environment,
     write_run_log,
 )
 from src.utils import (
@@ -79,11 +79,11 @@ class PaperSummarizer:
         self.summary_engine_label = ""
 
         if self.summary_backend == "agent":
-            validate_copilot_environment(
+            validate_cli_environment(
                 command=self.command,
                 required_mcp_servers=["mineru"],
             )
-            self.summary_engine_label = "Copilot CLI + MinerU MCP 全文解析"
+            self.summary_engine_label = "CLI + MinerU MCP 全文解析"
         else:
             self.llm_client = LLMClientFactory.create_client(config)
             self.summary_engine_label = (
@@ -110,7 +110,7 @@ class PaperSummarizer:
     def _summarize_papers_with_agent(self, papers: list[dict[str, Any]]) -> list[dict[str, Any]]:
         self.logger.info("=" * 60)
         self.logger.info("开始基于全文总结 %s 篇论文", len(papers))
-        self.logger.info("使用代理: Copilot CLI + MinerU MCP")
+        self.logger.info("使用代理: CLI + MinerU MCP")
         self.logger.info("=" * 60)
 
         timestamp = get_current_datetime(self.config).strftime("%Y%m%d_%H%M%S")
@@ -143,7 +143,7 @@ class PaperSummarizer:
         prompt_snapshot.write_text(prompt, encoding="utf-8")
 
         configured_mcp_servers = get_configured_mcp_servers(self.command)
-        command = build_copilot_command(
+        cli_command = build_cli_command(
             command=self.command,
             prompt=prompt,
             configured_mcp_servers=configured_mcp_servers,
@@ -155,7 +155,7 @@ class PaperSummarizer:
 
         try:
             result = subprocess.run(
-                command,
+                cli_command,
                 cwd=workspace_dir,
                 capture_output=True,
                 text=True,
@@ -167,7 +167,7 @@ class PaperSummarizer:
                 log_dir=self.log_dir,
                 filename_prefix="daily_digest",
                 timestamp=timestamp,
-                command=command,
+                command=cli_command,
                 prompt=prompt,
                 stdout=exc.stdout,
                 stderr=exc.stderr,
@@ -181,7 +181,7 @@ class PaperSummarizer:
             log_dir=self.log_dir,
             filename_prefix="daily_digest",
             timestamp=timestamp,
-            command=command,
+            command=cli_command,
             prompt=prompt,
             stdout=result.stdout,
             stderr=result.stderr,

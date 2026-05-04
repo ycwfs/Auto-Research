@@ -9,12 +9,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from src.automation.copilot_runner import (
+from src.automation.cli_runner import (
     PROJECT_ROOT,
-    build_copilot_command,
+    build_cli_command,
     get_configured_mcp_servers,
     resolve_project_path,
-    validate_copilot_environment,
+    validate_cli_environment,
     write_run_log,
 )
 from src.utils import get_current_datetime, save_json, save_text, load_json
@@ -125,7 +125,7 @@ def validate_weekly_idea_environment(config: dict[str, Any]):
     """Ensure the weekly idea job can run."""
     agent_config = config.get("agent", {})
     command = agent_config.get("copilot_command", "copilot")
-    validate_copilot_environment(command=command, required_mcp_servers=["zotero"])
+    validate_cli_environment(command=command, required_mcp_servers=["zotero"])
 
 
 def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
@@ -186,7 +186,7 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
     prompt_snapshot.write_text(prompt, encoding="utf-8")
 
     configured_mcp_servers = get_configured_mcp_servers(command)
-    copilot_command = build_copilot_command(
+    cli_command = build_cli_command(
         command=command,
         prompt=prompt,
         configured_mcp_servers=configured_mcp_servers,
@@ -198,7 +198,7 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
 
     try:
         result = subprocess.run(
-            copilot_command,
+            cli_command,
             cwd=workspace_dir,
             capture_output=True,
             text=True,
@@ -210,7 +210,7 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
             log_dir=log_dir,
             filename_prefix="weekly_idea",
             timestamp=timestamp,
-            command=copilot_command,
+            command=cli_command,
             prompt=prompt,
             stdout=exc.stdout,
             stderr=exc.stderr,
@@ -224,7 +224,7 @@ def run_weekly_idea_generation(config: dict[str, Any], logger=None) -> Path:
         log_dir=log_dir,
         filename_prefix="weekly_idea",
         timestamp=timestamp,
-        command=copilot_command,
+        command=cli_command,
         prompt=prompt,
         stdout=result.stdout,
         stderr=result.stderr,

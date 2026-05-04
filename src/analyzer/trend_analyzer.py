@@ -27,11 +27,11 @@ from sklearn.decomposition import LatentDirichletAllocation
 import nltk
 from nltk.corpus import stopwords
 
-from src.automation.copilot_runner import (
-    build_copilot_command,
+from src.automation.cli_runner import (
+    build_cli_command,
     get_configured_mcp_servers,
     resolve_project_path,
-    validate_copilot_environment,
+    validate_cli_environment,
     write_run_log,
 )
 from src.utils import (
@@ -85,8 +85,8 @@ class TrendAnalyzer:
         )
         self.analysis_engine_label = ""
         if self.analysis_backend == "agent":
-            validate_copilot_environment(command=self.command)
-            self.analysis_engine_label = "Copilot CLI narrative analysis"
+            validate_cli_environment(command=self.command)
+            self.analysis_engine_label = "CLI narrative analysis"
         else:
             if self.llm_client is None:
                 self.llm_client = LLMClientFactory.create_client(config)
@@ -445,7 +445,7 @@ class TrendAnalyzer:
         prompt_snapshot.write_text(prompt, encoding="utf-8")
 
         configured_mcp_servers = get_configured_mcp_servers(self.command)
-        command = build_copilot_command(
+        cli_command = build_cli_command(
             command=self.command,
             prompt=prompt,
             configured_mcp_servers=configured_mcp_servers,
@@ -457,7 +457,7 @@ class TrendAnalyzer:
 
         try:
             result = subprocess.run(
-                command,
+                cli_command,
                 cwd=workspace_dir,
                 capture_output=True,
                 text=True,
@@ -469,7 +469,7 @@ class TrendAnalyzer:
                 log_dir=self.log_dir,
                 filename_prefix="daily_analysis",
                 timestamp=timestamp,
-                command=command,
+                command=cli_command,
                 prompt=prompt,
                 stdout=exc.stdout,
                 stderr=exc.stderr,
@@ -483,7 +483,7 @@ class TrendAnalyzer:
             log_dir=self.log_dir,
             filename_prefix="daily_analysis",
             timestamp=timestamp,
-            command=command,
+            command=cli_command,
             prompt=prompt,
             stdout=result.stdout,
             stderr=result.stderr,

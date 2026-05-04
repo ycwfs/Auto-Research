@@ -1,4 +1,4 @@
-"""使用 Copilot CLI + Zotero MCP 执行每日 Zotero 上传任务。"""
+"""使用 CLI (Copilot/Claude/Codex) + Zotero MCP 执行每日 Zotero 上传任务。"""
 
 from __future__ import annotations
 
@@ -13,10 +13,14 @@ from typing import Any, Dict
 
 import pytz
 
+from src.automation.cli_runner import (
+    PROJECT_ROOT,
+    build_cli_command,
+    get_configured_mcp_servers,
+    resolve_project_path,
+    validate_cli_environment,
+)
 from src.utils import get_current_datetime, get_data_path, get_date_string, load_json
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PROMPT_FILE = Path("config/prompts/zotero_daily_upload_prompt.txt")
 PIPELINE_STATE_FILE = PROJECT_ROOT / "data/runtime/pipeline_state.json"
 PIPELINE_UPLOADABLE_STATUSES = {"running", "completed"}
@@ -350,39 +354,20 @@ def _build_copilot_command(
     mcp_servers: list[str],
     input_dir: Path,
 ) -> list[str]:
-    """构建 Copilot CLI 命令。"""
+    """构建 CLI 命令。"""
     command = zotero_config.get("copilot_command", "copilot")
-    # "--available-tools",
-    # "read,zotero",
-    # "--disable-builtin-mcps",
-    # "--disallow-temp-dir",
-    # "--silent",    
-    cmd = [
-        command,
-        "-p",
-        prompt,
-        "--allow-all-tools",
-        "--add-dir",
-        str(input_dir),
-        "--no-custom-instructions",
-        "--no-ask-user",
-        "--stream",
-        "off",
-    ]
-
-    for server_name in mcp_servers:
-        if server_name != "zotero":
-            cmd.extend(["--disable-mcp-server", server_name])
-
     model = zotero_config.get("model", "").strip()
-    if model:
-        cmd.extend(["--model", model])
-
     reasoning_effort = zotero_config.get("reasoning_effort", "").strip()
-    if reasoning_effort:
-        cmd.extend(["--reasoning-effort", reasoning_effort])
 
-    return cmd
+    return build_cli_command(
+        command=command,
+        prompt=prompt,
+        configured_mcp_servers=mcp_servers,
+        required_mcp_servers=["zotero"],
+        add_dirs=[input_dir],
+        model=model,
+        reasoning_effort=reasoning_effort,
+    )
 
 
 def _write_run_log(
@@ -395,79 +380,31 @@ def _write_run_log(
     exit_code: int | None,
 ) -> Path:
     """保存执行日志。"""
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_path = log_dir / f"zotero_upload_{timestamp}.log"
-
-    content = [
-        f"timestamp: {timestamp}",
-        f"cwd: {PROJECT_ROOT}",
-        f"exit_code: {exit_code if exit_code is not None else 'timeout'}",
-        f"command: {shlex.join(command)}",
-        "",
-        "=== PROMPT ===",
-        prompt,
-        "",
-        "=== STDOUT ===",
-        stdout or "",
-        "",
-        "=== STDERR ===",
-        stderr or "",
-        "",
-    ]
-    log_path.write_text("\n".join(content), encoding="utf-8")
-    return log_path
+    from src.automation.cli_runner import write_run_log
+    return write_run_log(
+        log_dir=log_dir,
+        filename_prefix="zotero_upload",
+        timestamp=timestamp,
+        command=command,
+        prompt=prompt,
+        stdout=stdout,
+        stderr=stderr,
+        exit_code=exit_code,
+    )
 
 
 def validate_zotero_upload_environment(config: Dict[str, Any]):
-    """校验 Copilot CLI 和 Zotero MCP 是否可用。"""
+    """校验 CLI 和 Zotero MCP 是否可用。"""
     zotero_config = get_zotero_upload_config(config)
     command = zotero_config.get("copilot_command", "copilot")
-    print(f"🔍 检查 Copilot CLI 命令: {command}")
-    if not shutil.which(command):
-        raise RuntimeError(
-            f"未找到 Copilot CLI 命令: {command}。请安装 GitHub Copilot CLI，或在 "
-            "scheduler.zotero_upload.copilot_command 中配置完整路径。"
-        )
+    print(f"🔍 检查 CLI 命令: {command}")
 
-    mcp_servers = get_configured_mcp_servers(command)
-    print(f"🔍 检查 Copilot MCP 服务器: {mcp_servers}")
-    if "zotero" not in mcp_servers:
-        raise RuntimeError(
-            "Copilot CLI 当前未检测到 zotero MCP 服务器，请先执行 `copilot mcp list` "
-            "确认当前用户下已配置 Zotero MCP。"
-        )
-
-
-def get_configured_mcp_servers(command: str) -> list[str]:
-    """列出当前 Copilot 配置中的 MCP 服务器名称。"""
-    try:
-        result = subprocess.run(
-            [command, "mcp", "list"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=30,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError("Copilot MCP 配置检查超时（>30 秒）") from exc
-
-    output = "\n".join(
-        part for part in [(result.stdout or "").strip(), (result.stderr or "").strip()] if part
+    validate_cli_environment(
+        command=command,
+        required_mcp_servers=["zotero"],
     )
-    if result.returncode != 0:
-        raise RuntimeError(f"Copilot MCP 配置检查失败:\n{output}")
 
-    servers = []
-    for line in output.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.endswith(":"):
-            continue
-        server_name = stripped.split(" ", 1)[0]
-        if server_name:
-            servers.append(server_name)
 
-    return servers
 
 
 def wait_for_zotero_artifacts(

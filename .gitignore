@@ -36,6 +36,8 @@ ENV/
 # Environment variables
 .env
 
+claude-generate/
+
 # Generated data files
 data/papers/*.json
 data/papers/*.lock

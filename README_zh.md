@@ -60,7 +60,7 @@
 ### 前置要求
 
 - Python 3.12+
-- Conda（推荐）或 virtualenv
+- uv
 - GitHub Copilot CLI（已登录）
 - 已配置好的 `mineru` 与 `zotero` MCP 服务器
 - 旧版 LLM API Key 仅在你仍手动使用旧 provider 模块时可选
@@ -72,24 +72,22 @@ git clone https://github.com/ycwfs/Auto-Research
 cd auto-research
 ```
 
-### 2. 创建虚拟环境
+### 2. 安装 uv 并创建虚拟环境
 
 ```bash
-# 使用 Conda（推荐）
-conda create -n auto-research python=3.12 -y
-conda activate auto-research
+# 若未安装 uv，先安装
+pip install uv
 
-# 或使用 venv
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate  # Windows
+# 创建虚拟环境
+uv venv --python 3.12
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate  # Windows
 ```
 
 ### 3. 安装依赖
 
 ```bash
-pip install uv
-uv pip install -r requirements.txt
+uv sync
 ```
 
 ### 4. 配置环境变量
@@ -122,6 +120,15 @@ VLLM_API_KEY=EMPTY
 
 # 邮件通知（可选）
 EMAIL_PASSWORD=your-app-password
+
+# For zotero mcp server(local)
+zotero-mcp setup
+
+# For zotero mcp server(remote)
+zotero-mcp setup --no-local --api-key YOUR_API_KEY --library-id YOUR_LIBRARY_ID
+
+# Better update db at first run
+zotero-mcp update-db
 ```
 
 ### 5. 配置 config.yaml
@@ -158,7 +165,13 @@ scheduler:
   timezone: "Asia/Shanghai"
   zotero_upload:
     enabled: true
-    run_time: "09:30"
+    run_time: "16:00"
+    run_on_start: true
+    copilot_command: "claude"
+    model: "claude-haiku-4-5-20251001"
+    # copilot_command: "copilot"
+    # model: ""
+    reasoning_effort: ""
   weekly_idea:
     enabled: true
     day_of_week: "thu"

@@ -61,7 +61,7 @@ Automatically track the latest AI research papers on arXiv each day, generate fu
 ### Prerequisites
 
 - Python 3.12+
-- Conda (recommended) or virtualenv
+- uv
 - GitHub Copilot CLI logged in
 - Configured `mineru` and `zotero` MCP servers
 - Optional legacy LLM API keys only if you still use the older provider-based modules directly
@@ -73,24 +73,22 @@ git clone https://github.com/ycwfs/Auto-Research
 cd auto-research
 ```
 
-### 2. Create a virtual environment
+### 2. Install uv and create a virtual environment
 
 ```bash
-# Using Conda (recommended)
-conda create -n auto-research python=3.12 -y
-conda activate auto-research
+# Install uv if you don't have it yet
+pip install uv
 
-# Or using venv
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
+# Create the virtual environment
+uv venv --python 3.12
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
 ```
 
 ### 3. Install dependencies
 
 ```bash
-pip install uv
-uv pip install -r requirements.txt
+uv sync
 ```
 
 ### 4. Configure environment variables
@@ -123,6 +121,15 @@ VLLM_API_KEY=EMPTY
 
 # Email notifications (optional)
 EMAIL_PASSWORD=your-app-password
+
+# For zotero mcp server(local)
+zotero-mcp setup
+
+# For zotero mcp server(remote)
+zotero-mcp setup --no-local --api-key YOUR_API_KEY --library-id YOUR_LIBRARY_ID
+
+# Better update db at first run
+zotero-mcp update-db
 ```
 
 ### 5. Configure `config.yaml`
@@ -145,7 +152,7 @@ arxiv:
 # Agent workflow
 agent:
   copilot_command: "copilot"
-  reasoning_effort: "high"
+  reasoning_effort: ""
 
 # Backend switching
 pipeline:
@@ -159,7 +166,13 @@ scheduler:
   timezone: "Asia/Shanghai"
   zotero_upload:
     enabled: true
-    run_time: "09:30"
+    run_time: "16:00"
+    run_on_start: true
+    copilot_command: "claude"
+    model: "claude-haiku-4-5-20251001"
+    # copilot_command: "copilot"
+    # model: ""
+    reasoning_effort: ""
   weekly_idea:
     enabled: true
     day_of_week: "thu"

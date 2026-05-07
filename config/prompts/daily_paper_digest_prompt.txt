@@ -26,6 +26,7 @@ Critical requirements:
 7. Only use `summary_error=true` when you could not produce a usable full-text-backed summary package for that paper.
 8. Do not modify the input JSON.
 9. Write exactly one JSON file to `{output_json}`.
+10. Avoid using sub-agents to process multiple papers simultaneously, as this may cause a timeout. Instead, handle each paper one at a time.
 
 Output JSON schema:
 ```json

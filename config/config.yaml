@@ -44,7 +44,7 @@ arxiv:
     # - "transformer"
 
   # 每天获取的最大论文数量
-  max_results: 50
+  max_results: 20
   days_back: 1
   
   # 排序方式: submittedDate (提交日期) 或 relevance (相关性)
@@ -56,13 +56,13 @@ arxiv:
 # Agent 配置（新的默认工作流）
 # 支持的 CLI: copilot (GitHub Copilot CLI), claude (Claude CLI), codex (Codex CLI)
 agent:
-  copilot_command: "claude"  # CLI 命令: copilot, claude, codex 或完整路径
-  model: "claude-haiku-4-5-20251001"
-  reasoning_effort: ""
-
-  # copilot_command: "copilot"  # CLI 命令: copilot, claude, codex 或完整路径
-  # model: ""
+  # copilot_command: "claude"  # CLI 命令: copilot, claude, codex 或完整路径
+  # model: "claude-haiku-4-5-20251001"
   # reasoning_effort: ""
+
+  copilot_command: "copilot"  # CLI 命令: copilot, claude, codex 或完整路径
+  model: ""
+  reasoning_effort: ""
 
   summary:
     prompt_file: "config/prompts/daily_paper_digest_prompt.txt"
@@ -153,10 +153,10 @@ scheduler:
     enabled: true
     run_time: "16:00"
     run_on_start: true
-    copilot_command: "claude"
-    model: "claude-haiku-4-5-20251001"
-    # copilot_command: "copilot"
-    # model: ""
+    # copilot_command: "claude"
+    # model: "claude-haiku-4-5-20251001"
+    copilot_command: "copilot"
+    model: ""
     reasoning_effort: ""
     timeout_minutes: 180
     artifact_wait_minutes: 180

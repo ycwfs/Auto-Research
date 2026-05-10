@@ -38,13 +38,13 @@ class PaperSummarizer:
 
     DEFAULT_PROMPT_FILE = Path("config/prompts/daily_paper_digest_prompt.txt")
     SUPPORTED_BACKENDS = {"agent", "llm"}
-    LLM_SYSTEM_PROMPT = """你是一个专业的学术论文分析助手。你将读取论文的标题、作者和摘要，并输出结构化双语总结。
+    LLM_SYSTEM_PROMPT = """你是一个专业的学术论文分析助手。你将读取论文的标题、作者和摘要，并只输出中文摘要正文。
 
 要求：
-1. 必须输出 JSON 对象，不要输出额外说明。
-2. `summary_zh` 与 `summary_en` 都要简洁准确。
-3. `structured_summary` 必须包含 task_definition、background_motivation、research_method、evaluation_metrics、results_conclusions 五个字段。
-4. 如果摘要里没有明确给出评测指标或公式，请说明“摘要未明确说明”而不是编造。
+1. 只输出中文摘要正文，不要输出 JSON、Markdown 标题、代码块或额外说明。
+2. 摘要应基于标题、作者与摘要内容，优先概括任务、方法、结果与应用场景。
+3. 不要编造摘要中没有明确提到的公式、指标、实验细节或结论。
+4. 如果摘要信息不足，就保持简洁保守，不要强行补全结构化内容。
 """
 
     def __init__(self, config: dict[str, Any]):
@@ -87,7 +87,7 @@ class PaperSummarizer:
         else:
             self.llm_client = LLMClientFactory.create_client(config)
             self.summary_engine_label = (
-                f"{self.llm_client.get_provider_name()} API ({self.llm_client.model}) 摘要总结"
+                f"{self.llm_client.get_provider_name()} API ({self.llm_client.model}) 中文摘要总结"
             )
 
     def summarize_papers(
@@ -224,28 +224,7 @@ class PaperSummarizer:
         paper_with_summary["paper_id"] = get_paper_identity(paper)
         paper_with_summary["summarized_at"] = get_current_datetime(self.config).isoformat()
 
-        authors = ", ".join(paper.get("authors", [])[:8])
-        prompt = f"""请基于以下论文信息生成结构化双语总结，并严格输出 JSON：
-
-标题：{paper.get('title', '')}
-作者：{authors}
-类别：{', '.join(paper.get('categories', []))}
-摘要：
-{paper.get('abstract', '')}
-
-JSON schema:
-{{
-  "summary_zh": "中文总结",
-  "summary_en": "English summary",
-  "structured_summary": {{
-    "task_definition": "任务定义（输入输出）",
-    "background_motivation": "研究背景与动机",
-    "innovations": "主要创新点",
-    "research_method": "主要方法、关键流程、核心公式（如果摘要明确提到）",
-    "evaluation_metrics": "评测指标及其含义/计算方式（若摘要未明确说明则直说）",
-    "results_conclusions": "实验结果与结论"
-  }}
-}}"""
+        prompt = self._build_llm_summary_prompt(paper)
 
         try:
             assert self.llm_client is not None
@@ -253,22 +232,15 @@ JSON schema:
                 prompt=prompt,
                 system_prompt=self.LLM_SYSTEM_PROMPT,
             )
-            parsed = self._extract_json_payload(response)
-            structured = parsed.get("structured_summary", {})
-            paper_with_summary["summary"] = str(parsed.get("summary_zh") or "").strip()
-            paper_with_summary["summary_en"] = str(parsed.get("summary_en") or "").strip()
-            paper_with_summary["structured_summary"] = structured if isinstance(structured, dict) else {}
-            paper_with_summary["zotero_note_zh"] = self._build_zotero_note(
-                language="zh",
-                summary=paper_with_summary["summary"],
-                structured=paper_with_summary["structured_summary"],
+            paper_with_summary["summary"] = self._normalize_llm_summary_text(response)
+            paper_with_summary["summary_en"] = ""
+            paper_with_summary["structured_summary"] = {}
+            paper_with_summary["zotero_note_zh"] = self._build_llm_chinese_note(
+                paper_with_summary["summary"]
             )
-            paper_with_summary["zotero_note_en"] = self._build_zotero_note(
-                language="en",
-                summary=paper_with_summary["summary_en"],
-                structured=paper_with_summary["structured_summary"],
-            )
+            paper_with_summary["zotero_note_en"] = ""
             paper_with_summary["summary_error"] = False
+            paper_with_summary["summary_error_message"] = ""
         except Exception as exc:
             self.logger.error("总结论文失败 [%s]: %s", paper.get("title", "Unknown"), str(exc))
             paper_with_summary["summary"] = ""
@@ -280,6 +252,37 @@ JSON schema:
             paper_with_summary["summary_error_message"] = str(exc)
 
         return paper_with_summary
+
+    def _build_llm_summary_prompt(self, paper: dict[str, Any]) -> str:
+        authors = ", ".join(paper.get("authors", [])[:8])
+        return f"""请根据下面的论文信息，直接写一段简洁准确的中文摘要。
+
+要求：
+1. 只输出中文摘要正文，不要输出 JSON、标题、项目符号或额外解释。
+2. 摘要应尽量覆盖论文任务、核心方法、主要结果或结论，但只能基于已提供的摘要内容。
+3. 如果原摘要没有明确给出结果、指标或方法细节，不要编造。
+4. 控制在 1-2 段，语言自然凝练。
+
+标题：{paper.get('title', '')}
+作者：{authors}
+类别：{', '.join(paper.get('categories', []))}
+摘要：
+{paper.get('abstract', '')}"""
+
+    @staticmethod
+    def _normalize_llm_summary_text(response: str) -> str:
+        text = response.strip()
+        text = re.sub(r"^```[a-zA-Z0-9_-]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+        text = re.sub(r"^\s*中文摘要[:：]\s*", "", text)
+        text = text.strip().strip('"').strip("'").strip()
+        if not text:
+            raise ValueError("LLM 未返回可用的中文摘要")
+        return text
+
+    @staticmethod
+    def _build_llm_chinese_note(summary: str) -> str:
+        return f"# 论文总结\n\n{summary}".strip()
 
     def _extract_json_payload(self, response: str) -> dict[str, Any]:
         response = response.strip()
@@ -517,24 +520,26 @@ JSON schema:
             structured = paper.get("structured_summary", {})
             report_parts.append("\n### 中文摘要")
             report_parts.append(f"\n{paper.get('summary', '暂无')}")
-            report_parts.append("\n### English Summary")
-            report_parts.append(f"\n{paper.get('summary_en', 'N/A')}")
-            report_parts.append("\n### Structured Notes")
-            report_parts.append(
-                f"\n- **Task / IO**: {structured.get('task_definition', 'N/A')}"
-            )
-            report_parts.append(
-                f"\n- **Background & Motivation**: {structured.get('background_motivation', 'N/A')}"
-            )
-            report_parts.append(
-                f"\n- **Method**: {structured.get('research_method', 'N/A')}"
-            )
-            report_parts.append(
-                f"\n- **Metrics**: {structured.get('evaluation_metrics', 'N/A')}"
-            )
-            report_parts.append(
-                f"\n- **Results & Conclusions**: {structured.get('results_conclusions', 'N/A')}"
-            )
+            if paper.get("summary_en"):
+                report_parts.append("\n### English Summary")
+                report_parts.append(f"\n{paper.get('summary_en', 'N/A')}")
+            if isinstance(structured, dict) and any(str(value).strip() for value in structured.values()):
+                report_parts.append("\n### Structured Notes")
+                report_parts.append(
+                    f"\n- **Task / IO**: {structured.get('task_definition', 'N/A')}"
+                )
+                report_parts.append(
+                    f"\n- **Background & Motivation**: {structured.get('background_motivation', 'N/A')}"
+                )
+                report_parts.append(
+                    f"\n- **Method**: {structured.get('research_method', 'N/A')}"
+                )
+                report_parts.append(
+                    f"\n- **Metrics**: {structured.get('evaluation_metrics', 'N/A')}"
+                )
+                report_parts.append(
+                    f"\n- **Results & Conclusions**: {structured.get('results_conclusions', 'N/A')}"
+                )
             report_parts.append("\n---\n")
 
         return "\n".join(report_parts)

@@ -32,11 +32,11 @@ arxiv:
     - "sport agent"
     - "sport AI"
     - "sport artificial intelligence"
-    # - "anything"
-    # - "diffusion"
-    # - "large language model"
+    - "anything"
+    - "diffusion"
+    - "large language model"
     # - "LLM"
-    # - "multi-modal"
+    - "multi-modal"
     - "skeleton"
     - "action recognition"
     # - "artificial intelligence"
@@ -44,7 +44,7 @@ arxiv:
     # - "transformer"
 
   # 每天获取的最大论文数量
-  max_results: 20
+  max_results: 50
   days_back: 1
   
   # 排序方式: submittedDate (提交日期) 或 relevance (相关性)
@@ -77,8 +77,8 @@ agent:
 
 # 流水线后端选择
 pipeline:
-  summary_backend: "agent"   # agent 或 llm
-  analysis_backend: "agent"  # agent 或 llm
+  summary_backend: "llm"   # agent 或 llm
+  analysis_backend: "llm"  # agent 或 llm
 
 # LLM 配置（旧流程兼容，可选）
 llm:

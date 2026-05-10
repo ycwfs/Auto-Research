@@ -19,6 +19,7 @@ Field restriction keywords:
 Instructions:
 1. Read the weekly local paper bundle first.
 2. Use Zotero MCP to inspect the broader Zotero repository, especially papers, notes, or collections relevant to the themes that appeared this week.
+3. If the detailed paper content is needed, please use the mineru MCP to convert and read the full markdown content.
 3. Synthesize:
     - what this week's papers focused on,
     - what recurring opportunities or gaps appear when compared with the broader Zotero repository,
@@ -53,7 +54,7 @@ The "Introduction-Ready Research Idea" section must be self-contained and follow
 
 Do not invoke external writing skills or read external reference files outside the provided inputs and Zotero MCP context. Use only:
 - the weekly local paper bundle,
-- Zotero MCP results,
+- Zotero MCP results, Mineru MCP results,
 - the structure and requirements written in this prompt.
 
 Output JSON schema:

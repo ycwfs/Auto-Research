@@ -253,6 +253,8 @@ llm:
 
 然后在 `.env` 中设置对应的 API Key。也可以混合使用，例如 `summary_backend: "agent"`、`analysis_backend: "llm"`。
 
+当使用 `summary_backend: "llm"` 时，项目现在只会基于摘要请求并保存**中文摘要**。英文摘要字段和结构化笔记会故意留空，以避免在只有 abstract 的情况下强行生成复杂 JSON 导致不稳定。
+
 访问 http://localhost:5000 查看结果。
 
 ## 📂 项目结构

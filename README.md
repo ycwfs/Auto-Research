@@ -254,6 +254,8 @@ llm:
 
 Then set the matching API key in `.env`. You can also mix backends, for example `summary_backend: "agent"` with `analysis_backend: "llm"`.
 
+When `summary_backend: "llm"` is used, the project now requests and stores only a **Chinese summary** from the abstract-based LLM path. English summary fields and structured notes are left empty on purpose to avoid fragile JSON generation from limited abstract-only inputs.
+
 Visit http://localhost:5000 to view results.
 
 ## 📂 Project Structure

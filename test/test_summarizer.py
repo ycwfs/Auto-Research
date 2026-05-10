@@ -6,6 +6,7 @@
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import logging
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -91,6 +92,91 @@ def test_daily_report_rendering():
         ("chinese summary section", "### 中文摘要" in report),
         ("english summary section", "### English Summary" in report),
         ("structured note section", "### Structured Notes" in report),
+    ]
+
+    all_ok = True
+    for label, passed in checks:
+        print(f"  {'✅' if passed else '❌'} {label}")
+        all_ok = all_ok and passed
+
+    return all_ok
+
+
+def test_llm_backend_chinese_only_summary():
+    print("\n" + "=" * 70)
+    print("🧪 测试 LLM 后端只保存中文摘要")
+    print("=" * 70)
+
+    class FakeLLMClient:
+        model = "fake-model"
+
+        def get_provider_name(self):
+            return "fake"
+
+        def generate(self, prompt: str, system_prompt: str = None, max_tokens: int = None) -> str:
+            del prompt, system_prompt, max_tokens
+            return "中文摘要：这篇论文提出了一种简洁的方法，并在摘要中报告了有效结果。"
+
+    summarizer = object.__new__(PaperSummarizer)
+    summarizer.config = {}
+    summarizer.logger = logging.getLogger("daily_arxiv.summarizer.test")
+    summarizer.llm_client = FakeLLMClient()
+
+    paper = {
+        "id": "2604.54321v1",
+        "title": "LLM Summary Test",
+        "authors": ["Alice", "Bob"],
+        "categories": ["cs.AI"],
+        "abstract": "This paper proposes a concise method and reports effective results in the abstract.",
+        "pdf_url": "https://arxiv.org/pdf/2604.54321v1",
+    }
+
+    summarized = summarizer._summarize_single_paper_with_llm(paper)
+    checks = [
+        ("summary saved", summarized["summary"] == "这篇论文提出了一种简洁的方法，并在摘要中报告了有效结果。"),
+        ("english summary omitted", summarized["summary_en"] == ""),
+        ("structured summary omitted", summarized["structured_summary"] == {}),
+        ("english zotero note omitted", summarized["zotero_note_en"] == ""),
+        ("chinese zotero note kept", summarized["zotero_note_zh"] == "# 论文总结\n\n这篇论文提出了一种简洁的方法，并在摘要中报告了有效结果。"),
+        ("summary marked successful", summarized["summary_error"] is False),
+    ]
+
+    all_ok = True
+    for label, passed in checks:
+        print(f"  {'✅' if passed else '❌'} {label}")
+        all_ok = all_ok and passed
+
+    return all_ok
+
+
+def test_report_omits_empty_english_sections():
+    print("\n" + "=" * 70)
+    print("🧪 测试日报省略空英文与结构化部分")
+    print("=" * 70)
+
+    load_env()
+    config = load_config()
+    summarizer = PaperSummarizer(config)
+    sample_papers = [
+        {
+            "id": "2604.54321v1",
+            "paper_id": "2604.54321",
+            "title": "Chinese-only Paper",
+            "authors": ["Alice"],
+            "categories": ["cs.AI"],
+            "pdf_url": "https://arxiv.org/pdf/2604.54321v1.pdf",
+            "summary": "这里只有中文摘要。",
+            "summary_en": "",
+            "structured_summary": {},
+            "summary_error": False,
+        }
+    ]
+
+    report = summarizer.generate_daily_report(sample_papers)
+    checks = [
+        ("chinese summary section kept", "### 中文摘要" in report),
+        ("english summary section omitted", "### English Summary" not in report),
+        ("structured notes omitted", "### Structured Notes" not in report),
     ]
 
     all_ok = True
@@ -193,6 +279,8 @@ def test_html_fallback_digest_entry_counts_as_success():
 def main():
     results = [
         ("代理配置", test_summary_agent_config()),
+        ("LLM 中文摘要", test_llm_backend_chinese_only_summary()),
+        ("日报省略空英文", test_report_omits_empty_english_sections()),
         ("PDF 链接规范化", test_arxiv_pdf_url_normalization()),
         ("HTML fallback 成功判定", test_html_fallback_digest_entry_counts_as_success()),
         ("日报渲染", test_daily_report_rendering()),
